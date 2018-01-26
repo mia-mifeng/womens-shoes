@@ -7,5 +7,9 @@ However after data cleaning, there are 4500 useful data points.
 
 Two visualizations have been made for the data.
 0. R was used to clean the data 
-1. The first visualization set was made in R markdown [link to Data-Story.rmd](R-Scripts/Data-Story.rmd)
-- D3
+1. The first visualization set was made in R markdown [link to Data-Story.rmd](R-Scripts/Data-Story.rmd), and [link to the output file](R-Scripts/Data-Story.html).
+2. The second visualization was made using D3, modified based on the starting code of one of my previous project.
+
+Screenshots for the second visualization:
+
+![](screenshots/gucci-search.png)
