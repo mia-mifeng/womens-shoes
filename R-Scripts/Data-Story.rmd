@@ -1,0 +1,129 @@
+---
+title: "Analysis"
+output: html_document
+---
+
+### Setup
+```{r}
+library(imager)
+library(wordcloud2)
+library(tidyverse)
+library(dplyr)
+
+data <- data.frame(read.csv('../data/cleaned-womens-shoe-prices.csv'))
+```
+
+
+### What brands are the most expensive?
+```{r, message=FALSE, warning=FALSE}
+df.clean %>% 
+  group_by(brand) %>%
+  dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
+  filter(price > 100) %>%
+  arrange(desc(price)) %>%
+  top_n(20) %>%
+  ggplot(mapping = aes(x=reorder(brand, price), y=price)) + 
+    geom_bar(stat = "identity", aes(fill=price)) +
+    theme_light() +
+    scale_colour_gradient() +
+    coord_flip() +
+    labs(title="Expensive brands", x="Brand", y="Mean Price (USD)")
+
+df.clean %>% 
+  group_by(brand) %>%
+  dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
+  filter(price <= 100 & price > 50) %>%
+  arrange(desc(price)) %>%
+  top_n(20) %>%
+  ggplot(mapping = aes(x=reorder(brand, price), y=price)) + 
+    geom_bar(stat = "identity", aes(fill=price)) +
+    theme_light() +
+    scale_colour_gradient() +
+    coord_flip() +
+    labs(title="Mid range brands", x="Brand", y="Mean Price (USD)")
+
+df.clean %>% 
+  group_by(brand) %>%
+  dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
+  filter(price < 50) %>%
+  arrange(desc(price)) %>%
+  top_n(-20) %>%
+  ggplot(mapping = aes(x=reorder(brand, price), y=price)) + 
+    geom_bar(stat = "identity", aes(fill=price)) +
+    theme_light() +
+    scale_colour_gradient() +
+    coord_flip() +
+    labs(title="Cheap brands", x="Brand", y="Mean Price (USD)")
+```
+
+# Tests
+```{r}
+df.clean %>% 
+  select(dateAdded) %>% 
+  mutate(date=as.Date(dateAdded)) %>%
+  summary()
+df.clean %>%
+  mutate(date=as.Date(dateAdded)) %>%
+  ggplot(aes(y=price.avg, x=date)) + geom_point(alpha=0.5)
+
+df.clean %>%
+  mutate(date=as.Date(prices.dateAdded)) %>%
+  ggplot(aes(x=date)) + geom_histogram(alpha=0.5)
+```
+
+I guess I was right about unbranded shoes? I wonder what the actual shoes look like? Now I'll use the image URL feature to download and plot the image.
+
+### What do $7000 shoes look like?
+
+```{r, eval=FALSE, include=TRUE}
+#Grab the shoe image from the URL
+getImage <- function(idx){
+  if (!is.na(df.clean$urls[[idx]][1])) {
+    tryCatch({
+      download.file(df.clean$urls[[idx]][1] ,'image', mode = 'wb')
+      a <- load.image('image')
+      a <- resize(a, size_x = 150, size_y = 150)
+      return(a) 
+    }, error = function(err) {
+      #error cant get image!
+    })
+    
+  }
+  return(imfill(100, 100, val=1)) ## Return a blank white image if NA
+}
+
+plotShoes <- function(idxs){
+  op <- par(no.readonly=TRUE)
+  par(mfrow=c(3,3), mar=c(.1,.1,.1,.1))
+  
+  for (i in idxs){
+    j <- getImage(i)
+    plot(j, axes=FALSE)
+    text(10, 10, col="black", cex=1.5, paste('$',df.clean$price.avg[i]))
+    text(10, 25, col="black", cex=1, paste(df.clean$brand[i]))
+  }
+  par(op)
+}
+
+plotShoes(1:9)
+```
+![Clearly, the top 9 shoes are not shoes!](http://puu.sh/vFFa3/d6e81aaef5.jpg) 
+
+It turns out TwoBirch is a jewelry company. What do slightly less expensive shoes look like?
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE, include=TRUE}
+plotShoes(41:49)
+```
+![These look like actual shoes](http://puu.sh/vFFd8/2577a36775.jpg)
+
+What do the cheap shoes look like?
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE, include=TRUE}
+plotShoes(3991:3999)
+
+nonshoes <- c('pants','jeans', 'jacket','cardigan', 'dress','shirt','romper','suit','pedicure', 'bra','underwire','wirefree','bikini','swim','lingerie','thong','slippers','pantyhose','hairpin',
+              'swimsuit','swimwear','scarf','glove','leggings','eyewear','Sunglasses',"Costume",
+              'dress','blazer','men\'s', 'skirt','coat','top','socks','Doll','sleepwear','makeup',
+              'bracelet','necklace','jewelry','diamond','band','ring','watch','Parka','lens')
+```
+

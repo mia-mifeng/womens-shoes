@@ -1,0 +1,105 @@
+---
+title: "Analysis"
+output: html_document
+---
+
+### Setup
+```{r}
+library(imager)
+library(wordcloud2)
+library(tidyverse)
+library(dplyr)
+
+data <- data.frame(read.csv('../data/original-womens-shoe-prices.csv'))
+```
+# Remove items that aren't shoes
+```{r}
+nonshoes <- c('pants','jeans', 'jacket','cardigan', 'dress','shirt','romper','suit','pedicure', 'bra','underwire','wirefree','bikini','swim','lingerie','thong','slippers','pantyhose','hairpin',
+              'swimsuit','swimwear','scarf','glove','leggings','eyewear','Sunglasses',"Costume",
+              'dress','blazer','men\'s', 'skirt','coat','top','socks','Doll','sleepwear','makeup',
+              'bracelet','necklace','jewelry','diamond','band','ring','watch','Parka','lens')
+
+data_shoes <- data %>% 
+  filter(!brand %in% c('TwoBirch','TBJE Wedding Bands','Yours Clothing','Brioni','GEMaffair',
+                       'TheBeJeweledEgg Rings','Studs Galore','Techno-Marine','LUXURMAN',
+                       'TBJE Slide Pendants','Peacock Diamonds','JUNGHANS','Ddi'), 
+         !is.na(brand))%>% 
+  filter(!grepl(paste(nonshoes, collapse = "|"),name, ignore.case = T)) 
+
+```
+
+# Data Filtering
+```{r, message=FALSE, warning=FALSE}
+df <- data_shoes
+
+# The most popular 100 brands
+# brands <- data.frame(sort(table(df$brand), decreasing = TRUE))
+# brands <- brands[2:101,]
+# df <- df[which(df$brand %in% brands$Var1),]
+```
+
+# Data Cleaning
+
+```{r, message=FALSE, warning=FALSE}
+#Function to standardise the prices to USD, as there are several currencies
+convertPrice <- function(currency, amount){
+  ifelse(currency=='AUD', amount * 0.75,
+  ifelse(currency=='CAD', amount * 0.73,
+  ifelse(currency=='EUR', amount * 1.1,
+  ifelse(currency=='GPB', amount * 1.3, 
+         amount))))
+}
+
+#Convert price to numeric and USD
+df$prices.amountMax <- as.numeric(as.character(df$prices.amountMax))
+df$prices.amountMin <- as.numeric(as.character(df$prices.amountMin))
+df$prices.amountMin <- convertPrice(df$prices.currency, df$prices.amountMin)
+df$prices.amountMax <- convertPrice(df$prices.currency, df$prices.amountMax)
+
+#Split image URLs so we can grab product images later
+df$imageURLStr <- df$imageURLs
+df$imageURLs <- as.character(df$imageURLs) %>% strsplit(",")
+```
+
+The ID field is duplicated.
+
+# Summarise the data by shoe ID
+```{r, message=FALSE, warning=FALSE}
+df.distinct <- df %>% distinct(id, .keep_all = TRUE) %>% select(-brand)
+
+df.clean <- df %>%
+  group_by(id) %>%
+  dplyr::summarise(
+            count = n(),
+            brand = first(brand),
+            price.max = mean(prices.amountMax, na.rm=TRUE),
+            price.min = mean(prices.amountMin, na.rm=TRUE),
+            price.avg = round((price.max + price.min) / 2),
+            urls = as.character(imageURLs[1])
+            ) %>%
+  inner_join(df.distinct, by="id") %>%
+  arrange(desc(price.avg)) %>%
+  filter(!is.nan(price.avg))
+
+
+```
+
+There are some little errors in the brand names.
+# Fix brand names
+```{r}
+df.clean$brand <- ifelse(df.clean$brand=='PUMA', 'Puma', as.character(df.clean$brand))
+df.clean$brand <- ifelse(df.clean$brand=='Lauren Ralph Lauren', 'Ralph Lauren', as.character(df.clean$brand))
+df.clean$brand <- ifelse(df.clean$brand=='MICHAEL Michael Kors', 'Michael Kors', as.character(df.clean$brand))
+df.clean$brand <- ifelse(df.clean$brand %in% c('Pleaser Shoes', 'PleaserUSA'), 'Pleaser', as.character(df.clean$brand))
+```
+
+# Output Cleaned Data
+```{r}
+output <- df.clean %>% 
+  select(
+    -urls,
+    -imageURLs)
+
+write.csv(output, "filename.csv", na="", row.names=FALSE, sep=",")
+```
+
