@@ -1,53 +1,76 @@
 ---
-title: "Analysis"
-output: html_document
+title: "Data-Story"
+params:
+  plot: NA
+output:
+  html_document:
+    theme: cosmo
+  pdf_document: default
 ---
 
 ### Setup
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(imager)
 library(wordcloud2)
 library(tidyverse)
 library(dplyr)
+library(plotly)
 
 data <- data.frame(read.csv('../data/cleaned-womens-shoe-prices.csv'))
 ```
 
+### How many shoes are there in the dataset?
+```{r}
+nrow(data)
+```
 
-### What brands are the most expensive?
+### How many brands?
+```{r}
+data %>% 
+  select(brand) %>%
+  unique() %>%
+  nrow
+```
+
+### What are these brands?
+Make a wordcloud to have a brief overview. The bigger the word is, the more shoes the brand has in this dataset.
 ```{r, message=FALSE, warning=FALSE}
-df.clean %>% 
+df.wc <- data %>% 
+  select(brand, price.avg) %>%
+  group_by(brand) %>%
+  dplyr::summarise(n = n()) %>%
+  arrange(desc(n))
+
+wordcloud2(df.wc)
+```
+
+We can see some familiar names, such as the huge Nine West, Puma, etc, though there appears to be just a few UGG shoes in this dataset.
+
+### What are the expensive brands?
+```{r, message=FALSE, warning=FALSE}
+data %>% 
   group_by(brand) %>%
   dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
   filter(price > 100) %>%
   arrange(desc(price)) %>%
-  top_n(20) %>%
+  top_n(30) %>%
   ggplot(mapping = aes(x=reorder(brand, price), y=price)) + 
     geom_bar(stat = "identity", aes(fill=price)) +
     theme_light() +
-    scale_colour_gradient() +
     coord_flip() +
     labs(title="Expensive brands", x="Brand", y="Mean Price (USD)")
 
-df.clean %>% 
-  group_by(brand) %>%
-  dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
-  filter(price <= 100 & price > 50) %>%
-  arrange(desc(price)) %>%
-  top_n(20) %>%
-  ggplot(mapping = aes(x=reorder(brand, price), y=price)) + 
-    geom_bar(stat = "identity", aes(fill=price)) +
-    theme_light() +
-    scale_colour_gradient() +
-    coord_flip() +
-    labs(title="Mid range brands", x="Brand", y="Mean Price (USD)")
+```
+Top 5 are over $1000, and top 40 are over $500.
 
-df.clean %>% 
+### How about the cheaper ones?
+```{r}
+data %>% 
   group_by(brand) %>%
   dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
   filter(price < 50) %>%
   arrange(desc(price)) %>%
-  top_n(-20) %>%
+  top_n(-30) %>%
   ggplot(mapping = aes(x=reorder(brand, price), y=price)) + 
     geom_bar(stat = "identity", aes(fill=price)) +
     theme_light() +
@@ -56,74 +79,65 @@ df.clean %>%
     labs(title="Cheap brands", x="Brand", y="Mean Price (USD)")
 ```
 
-# Tests
+Kensie has $1 shoes!!!
+
+# We just saw the mean price for each brand, but how about the prices for individual shoes?
+Plot the distribution of the shoe prices in this dataset.
 ```{r}
-df.clean %>% 
-  select(dateAdded) %>% 
-  mutate(date=as.Date(dateAdded)) %>%
-  summary()
-df.clean %>%
-  mutate(date=as.Date(dateAdded)) %>%
-  ggplot(aes(y=price.avg, x=date)) + geom_point(alpha=0.5)
+plot_ly(data, x = ~price.avg, type = "histogram")
+```
+There is a pair of $2000+ shoes. What does it look like?
+It will be figured out as we further explore the distributions for the brands, rather than the mean prices.
 
-df.clean %>%
-  mutate(date=as.Date(prices.dateAdded)) %>%
-  ggplot(aes(x=date)) + geom_histogram(alpha=0.5)
+### Price distribution for each brand?
+```{r}
+data %>%
+  plot_ly(x = ~price.avg, y = ~as.character(brand), type = "scatter", alpha = 0.5)
+
+data %>%
+  ggplot(aes(x=price.avg, y=as.character(brand))) + geom_point(alpha=0.5)
 ```
 
-I guess I was right about unbranded shoes? I wonder what the actual shoes look like? Now I'll use the image URL feature to download and plot the image.
+(Note: Originally plotly was used to create interactive visualizations, but the charts are not showing in html, thus later ggplot was used instead.)
 
-### What do $7000 shoes look like?
+The $2000+ shoes are Gucci.
+By zooming in and out, some other facts can be revealed, e.g., the prices of Ralph Lauren's shoes are very spread-out.
 
-```{r, eval=FALSE, include=TRUE}
-#Grab the shoe image from the URL
-getImage <- function(idx){
-  if (!is.na(df.clean$urls[[idx]][1])) {
-    tryCatch({
-      download.file(df.clean$urls[[idx]][1] ,'image', mode = 'wb')
-      a <- load.image('image')
-      a <- resize(a, size_x = 150, size_y = 150)
-      return(a) 
-    }, error = function(err) {
-      #error cant get image!
-    })
-    
-  }
-  return(imfill(100, 100, val=1)) ## Return a blank white image if NA
-}
+### Expensive brands prices?
+```{r}
+expensive_brands <- data %>% 
+  group_by(brand) %>%
+  dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
+  filter(price > 100) %>%
+  arrange(desc(price)) %>%
+  top_n(30)
 
-plotShoes <- function(idxs){
-  op <- par(no.readonly=TRUE)
-  par(mfrow=c(3,3), mar=c(.1,.1,.1,.1))
-  
-  for (i in idxs){
-    j <- getImage(i)
-    plot(j, axes=FALSE)
-    text(10, 10, col="black", cex=1.5, paste('$',df.clean$price.avg[i]))
-    text(10, 25, col="black", cex=1, paste(df.clean$brand[i]))
-  }
-  par(op)
-}
 
-plotShoes(1:9)
-```
-![Clearly, the top 9 shoes are not shoes!](http://puu.sh/vFFa3/d6e81aaef5.jpg) 
+data %>%
+  filter(brand %in% expensive_brands$brand) %>%
+  ggplot(aes(x=price.avg, y=as.character(brand))) + geom_point(alpha=0.5)
 
-It turns out TwoBirch is a jewelry company. What do slightly less expensive shoes look like?
-
-```{r, message=FALSE, warning=FALSE, eval=FALSE, include=TRUE}
-plotShoes(41:49)
-```
-![These look like actual shoes](http://puu.sh/vFFd8/2577a36775.jpg)
-
-What do the cheap shoes look like?
-
-```{r, message=FALSE, warning=FALSE, eval=FALSE, include=TRUE}
-plotShoes(3991:3999)
-
-nonshoes <- c('pants','jeans', 'jacket','cardigan', 'dress','shirt','romper','suit','pedicure', 'bra','underwire','wirefree','bikini','swim','lingerie','thong','slippers','pantyhose','hairpin',
-              'swimsuit','swimwear','scarf','glove','leggings','eyewear','Sunglasses',"Costume",
-              'dress','blazer','men\'s', 'skirt','coat','top','socks','Doll','sleepwear','makeup',
-              'bracelet','necklace','jewelry','diamond','band','ring','watch','Parka','lens')
 ```
 
+The top brands are indeed expensive, of which the prices range from $230 to $2300.
+
+
+### Expensive brands prices?
+```{r}
+cheap_brands <- data %>% 
+  group_by(brand) %>%
+  dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
+  filter(price < 100) %>%
+  arrange(desc(price)) %>%
+  top_n(-30)
+
+data %>%
+  filter(brand %in% cheap_brands$brand) %>%
+  ggplot(aes(x=price.avg, y=as.character(brand))) + geom_point(alpha=0.5)
+```
+
+Cheap brands's prices range from $1 to $14.
+
+### What do these expensive or cheap shoes look like?
+
+An interactive visualization based on D3 was made to better display shoes details, including images, color choices, etc. The intended purpose of the d3 vis is not to show a discovered trend, but to support (maybe can also encourage) a user to further explore the dataset.
