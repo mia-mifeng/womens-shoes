@@ -76,11 +76,18 @@ function buildDataStructure(data){
     data = data.filter(function(d, i){return i < MAX_DATA_NUM})
     console.log("filtered="+(bfl - data.length))
 
-    searchData = data;
+    Array.prototype.unique = function() {
+      return this.filter(function (value, index, self) { 
+        return self.indexOf(value) === index;
+      });
+    }
+
+    searchData = data.map(d => d[NAME_ATTR]).unique();
 
   var root;
   //root = d3.hierarchy({children: [{children: top10}].concat(data)})
   root = d3.hierarchy({children: data})
+      // .sum(function(d) { return Math.sqrt(d[RADIUS_ATTR])*1.618 })
       .sum(function(d) { return d[RADIUS_ATTR] })
       .sort(function(a, b) {
         return b.data[DISTANCE_ATTR] - a.data[DISTANCE_ATTR];
@@ -103,7 +110,7 @@ function showTooltip(d){
             // var percent = Math.round(d.data[DISTANCE_ATTR] * 10000) / 100
             
             return d.data[NAME_ATTR] + "<br/>"
-                + detailMap[RADIUS_ATTR] + ": $" + d.data[RADIUS_ATTR] + "<br/>"
+                + detailMap[RADIUS_ATTR] + ": $ " + d.data[RADIUS_ATTR] + "<br/>"
                 // + detailMap[COLOR_ATTR] + ": $" + d.data[COLOR_ATTR] + "<br>"
                 + "<img src='" + d.data['imageURLStr'] + "'/>"
         });
@@ -144,11 +151,35 @@ function drawVis(root){
       .attr("class", "arc")
       .style("z-index",0);
 
-  var paths = arc.append("path")
-      .attr("d", path)
+  // var paths = arc.append("path")
+  //     .attr("d", path)
+  //     .attr("d", function(d) {
+  //       return d
+  //     })
+  //     .attr("fill", function(d) { 
+  //       // var color = d.data['color'].toLowerCase();
+  //       // return color === "default" ? "gray" : color; 
+  //       return "#c994c7"
+  //   })
+  //     .classed("bubbles", true);
+
+    var paths = groups.selectAll(".arc")
+    .append("path")
+      .attr("d", function(d) {
+        var r = d.data['r'];
+        return "M " + (-r) + " " + (r) + " " +
+               "L " + (-r) + " " + (-r*0.5) + " " +
+               "L " + (-r*0.3) + " " + (-r*0.5) + " " +
+               "L " + (0) + " " + (r*0.1) + " " +
+               "L " + (r*0.8) + " " + (r*0.6) + " " +
+               // "L " + (r) + " " + (r*0.2) + " " +
+               "L " + (r) + " " + (r) + " " +
+               "L " + (-r*0.5) + " " + (r*0.8) + " " +
+               "L " + (-r*0.5) + " " + (r) + " " +
+               "L " + (-r) + " " + (r) + " "
+      })
       .attr("fill", function(d) { 
-        var color = d.data['color'].toLowerCase();
-        return color === "default" ? "gray" : color; 
+        return "#dd3497"//"#c994c7"
     })
       .classed("bubbles", true);
 
@@ -156,9 +187,12 @@ function drawVis(root){
 
     //Add mouse events to bubbles
     paths.on('mouseover', function(d){
+        d3.select(this).style("stroke-width", 2)
+            .style("stroke", "black")
         showTooltip(d)
     });
     paths.on("mouseout", function(d){
+        d3.select(this).style("stroke-width", 0)
         tooltip.transition()
             .duration(0)
             .style("opacity", 0);
@@ -175,13 +209,7 @@ function drawVis(root){
     legend.append('text')
           .attr("x",size + margin.right)
           .attr("y", currentLegendHeight)
-          .text("Distance to Center: Admission Rate (%)")
-    currentLegendHeight += legendTextStep + legendSpaceStep
-
-    legend.append('text')
-          .attr("x",size + margin.right)
-          .attr("y", currentLegendHeight)
-          .text("Radius: Annual Cost ($)")
+          .text("Distance to Center and Shoe Size are mapped to Price")
     currentLegendHeight += legendTextStep + legendSpaceStep
 
 
@@ -205,7 +233,8 @@ function enableSearch(){
         var optionsData = []
             if (data && data.length > 0) {
                 for (var i = 0; i < data.length; i++) {
-                    optionsData.push(data[i][NAME_ATTR]);
+                    // optionsData.push(data[i][NAME_ATTR]);
+                    optionsData.push(data[i]);
                 }
                 console.log(optionsData.length)
             }
@@ -268,7 +297,7 @@ function enableSearch(){
 
         if (value && filteredBubbles) {
             // Unfade
-            console.log(filteredBubbles)
+            // console.log(filteredBubbles)
             filteredBubbles.classed("search-selected",true);
             
         }
