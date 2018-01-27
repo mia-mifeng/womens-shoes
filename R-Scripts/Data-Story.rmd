@@ -1,5 +1,5 @@
 ---
-title: "Data-Story"
+title: "The Story of Women's Shoe Prices"
 params:
   plot: NA
 output:
@@ -8,31 +8,33 @@ output:
   pdf_document: default
 ---
 
-### Load the shoe dataset
-```{r, message=FALSE, warning=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Loading
 library(imager)
 library(wordcloud2)
 library(tidyverse)
-library(dplyr)
+# library(dplyr)
 library(plotly)
 
 data <- data.frame(read.csv('../data/cleaned-womens-shoe-prices.csv'))
 ```
 
-### How many shoes are there in the dataset?
-```{r}
-nrow(data)
+### How many shoes do we have?
+```{r, echo=FALSE}
+print(paste("We have",nrow(data), "pair of shoes in this dataset."))
 ```
 
-### How many brands?
-```{r}
-data %>% 
+### From how many brands?
+```{r, echo=FALSE}
+n <- data %>% 
   select(brand) %>%
   unique() %>%
   nrow
+print(paste("The shoes are from",n, "brands."))
 ```
 
 ### What are these brands?
+
 Make a wordcloud to have a brief overview. The bigger the word is, the more shoes the brand has in this dataset.
 ```{r, message=FALSE, warning=FALSE}
 df.wc <- data %>% 
@@ -44,9 +46,9 @@ df.wc <- data %>%
 wordcloud2(df.wc)
 ```
 
-We can see some familiar names, such as the huge Nine West, Puma, etc, though there appears to be just a few UGG shoes in this dataset.
+We can see some familiar names, such as the Nine West, Puma, and New Balance, etc, and though there appears to be just a few UGG shoes in this dataset.
 
-### What are the expensive brands?
+### How much do the expensive brands cost?
 ```{r, message=FALSE, warning=FALSE}
 data %>% 
   group_by(brand) %>%
@@ -61,10 +63,10 @@ data %>%
     labs(title="Expensive brands", x="Brand", y="Mean Price (USD)")
 
 ```
-Top 5 are over $1000, and top 40 are over $500.
+Top 5 brands cost us over $1000 on average, and top 30 are over $500.
 
-### How about the cheaper ones?
-```{r}
+### How about the cheaper brands?
+```{r, message=FALSE, warning=FALSE}
 data %>% 
   group_by(brand) %>%
   dplyr::summarise(price = mean(price.avg, rm.na=true)) %>%
@@ -81,27 +83,32 @@ data %>%
 
 Kensie has $1 shoes!!!
 
-# We just saw the mean price for each brand, but how about the prices for individual shoes?
+### We just saw the mean price for each brand, but how about the prices of the individual shoes?
+
 Plot the distribution of the shoe prices in this dataset.
-```{r}
-plot_ly(data, x = ~price.avg, type = "histogram")
+```{r, message=FALSE, warning=FALSE}
+data %>% ggplot(aes(x=price.avg)) + geom_histogram()
 ```
-There is a pair of $2000+ shoes. What does it look like?
-It will be figured out as we further explore the distributions for the brands, rather than the mean prices.
+
+It is reasonable that the majority of them cost $30 to $80. Phew.
+
+However, there is a pair of $2000+ shoes. What does it look like?
+It will be figured out as we further explore the distributions for the brands.
 
 ### Price distribution for each brand?
-```{r}
+```{r, message=FALSE, warning=FALSE}
 # data %>%
 #   plot_ly(x = ~price.avg, y = ~as.character(brand), type = "scatter", alpha = 0.5)
 
 data %>%
-  ggplot(aes(x=price.avg, y=as.character(brand))) + geom_point(alpha=0.5)
+  ggplot(aes(x=price.avg, y=as.character(brand))) + geom_point(alpha=0.5) + theme(axis.text.y=element_blank())
 ```
 
-(Note: Originally plotly was used to create interactive visualizations, but the charts are not showing in html, thus later ggplot was used instead.)
+The $2000+ shoes on the right are from Gucci. Although Gucci doesn't have the highest average price, but it has super expensive shoes.
 
-The $2000+ shoes are Gucci.
 By zooming in and out, some other facts can be revealed, e.g., the prices of Ralph Lauren's shoes are very spread-out.
+
+(Note: Originally plotly was used to create interactive visualizations, but the charts are not showing in html, thus later ggplot was used instead.)
 
 ### Expensive brands prices?
 ```{r}
@@ -138,6 +145,30 @@ data %>%
 
 Cheap brands's prices range from $1 to $14.
 
-### What do these expensive or cheap shoes look like?
+### What do these expensive or cheap shoes look like? What about other details about these shoes?
 
-An interactive visualization based on D3 was made to better display shoes details, including images, color choices, etc. The intended purpose of the d3 vis is not to show a discovered trend, but to support (maybe can also encourage) a user to further explore the dataset.
+An interactive visualization based on D3 was made to better display and filter shoes details, including images, color choices, etc. The intended purpose of the d3 vis is not to show a discovered trend, but to support (maybe can also encourage) a user to further explore the dataset in a flexible way.
+
+This is an overview of the interactive visualization. Each pair of shoes in this dataset displays as a "shoe" (made with SVG path).
+The shoes with higher cost are shown bigger.
+![](../screenshots/overview.png)
+
+### What is the most expensive pair of shoes from Gucci?
+
+It is at the center. However, it does not have an image...
+![](../screenshots/top.png)
+
+### What if I want to check a brand?
+
+This is an example of Gucci, and its shoes are highlighted. Actually there are many cheaper shoes of this brand.
+
+![](../screenshots/gucci-search.png)
+
+This is Ralph Lauren.
+
+![](../screenshots/ralph-lauren.png)
+ Some brands are indeed cheaper.
+ 
+ ![](../screenshots/mia.png)
+ 
+ The visualization can be accessed through this link --  [https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/](https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/)
