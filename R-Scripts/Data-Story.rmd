@@ -8,7 +8,7 @@ output:
   pdf_document: default
 ---
 
-### Setup
+### Load the shoe dataset
 ```{r, message=FALSE, warning=FALSE}
 library(imager)
 library(wordcloud2)
@@ -91,8 +91,8 @@ It will be figured out as we further explore the distributions for the brands, r
 
 ### Price distribution for each brand?
 ```{r}
-data %>%
-  plot_ly(x = ~price.avg, y = ~as.character(brand), type = "scatter", alpha = 0.5)
+# data %>%
+#   plot_ly(x = ~price.avg, y = ~as.character(brand), type = "scatter", alpha = 0.5)
 
 data %>%
   ggplot(aes(x=price.avg, y=as.character(brand))) + geom_point(alpha=0.5)

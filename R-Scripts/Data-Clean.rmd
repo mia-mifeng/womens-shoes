@@ -8,7 +8,7 @@ output: html_document
 library(imager)
 library(wordcloud2)
 library(tidyverse)
-library(dplyr)
+# library(dplyr)
 
 data <- data.frame(read.csv('../data/original-womens-shoe-prices.csv'))
 ```
@@ -19,7 +19,7 @@ nonshoes <- c('pants','jeans', 'jacket','cardigan', 'dress','shirt','romper','su
               'dress','blazer','men\'s', 'skirt','coat','top','socks','Doll','sleepwear','makeup',
               'bracelet','necklace','jewelry','diamond','band','ring','watch','Parka','lens')
 
-data_shoes <- data %>% 
+df <- data %>% 
   filter(!brand %in% c('TwoBirch','TBJE Wedding Bands','Yours Clothing','Brioni','GEMaffair',
                        'TheBeJeweledEgg Rings','Studs Galore','Techno-Marine','LUXURMAN',
                        'TBJE Slide Pendants','Peacock Diamonds','JUNGHANS','Ddi'), 
@@ -28,15 +28,6 @@ data_shoes <- data %>%
 
 ```
 
-# Data Filtering
-```{r, message=FALSE, warning=FALSE}
-df <- data_shoes
-
-# The most popular 100 brands
-# brands <- data.frame(sort(table(df$brand), decreasing = TRUE))
-# brands <- brands[2:101,]
-# df <- df[which(df$brand %in% brands$Var1),]
-```
 
 # Data Cleaning
 
@@ -56,9 +47,6 @@ df$prices.amountMin <- as.numeric(as.character(df$prices.amountMin))
 df$prices.amountMin <- convertPrice(df$prices.currency, df$prices.amountMin)
 df$prices.amountMax <- convertPrice(df$prices.currency, df$prices.amountMax)
 
-#Split image URLs so we can grab product images later
-df$imageURLStr <- df$imageURLs
-df$imageURLs <- as.character(df$imageURLs) %>% strsplit(",")
 ```
 
 The ID field is duplicated.
@@ -85,6 +73,7 @@ df.clean <- df %>%
 ```
 
 There are some little errors in the brand names.
+
 # Fix brand names
 ```{r}
 df.clean$brand <- ifelse(df.clean$brand=='PUMA', 'Puma', as.character(df.clean$brand))
@@ -97,9 +86,12 @@ df.clean$brand <- ifelse(df.clean$brand %in% c('Pleaser Shoes', 'PleaserUSA'), '
 ```{r}
 output <- df.clean %>% 
   select(
-    -urls,
-    -imageURLs)
+    id,
+    price.avg,
+    brand,
+    colors,
+    imageURLs)
 
-write.csv(output, "filename.csv", na="", row.names=FALSE, sep=",")
+write.csv(output, "cleaned.csv", na="", row.names=FALSE)
 ```
 

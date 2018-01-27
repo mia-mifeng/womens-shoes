@@ -1,0 +1,29 @@
+.group {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.vis-tooltip {	
+    position: absolute;			
+    text-align: left;			
+    max-width: 250px;					
+    padding: 10px;				
+    font: 15px sans-serif;		
+    background: white;	
+    border: 2px solid gray;	
+    z-index: 10;	
+    pointer-events: none;
+    border-radius: 10px;		
+}
+
+.vis-tooltip img {
+    max-width: 200px;
+    max-height: 200px;
+    opacity: 1;
+}
+
+.legend {
+    font-size: 1.2em;
+    text-anchor: end
+}

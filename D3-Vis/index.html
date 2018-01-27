@@ -12,17 +12,17 @@
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <link rel="stylesheet" href="css/style.css">
 <!-- libraries for vis -->
-<link rel="stylesheet" type="text/css" media="screen" href="css/mainy.css" />
-<script src="js/libs/jquery.min.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="css/main.css" />
+<script src="libs/jquery.min.js" type="text/javascript"></script>
 <script src="https://d3js.org/d3.v4.min.js" type="text/javascript"></script>
-<script src="js/libs/queue.min.js" type="text/javascript"></script>
-<script src="js/libs/underscore-min.js" type="text/javascript"></script>
-<script src="js/libs/extData.js" type="text/javascript"></script>
-<script src="js/main-bubble.js" type="text/javascript"></script>
+<script src="libs/queue.min.js" type="text/javascript"></script>
+<!-- <script src="libs/underscore-min.js" type="text/javascript"></script> -->
+<!-- <script src="js/libs/extData.js" type="text/javascript"></script> -->
+<script src="js/main.js" type="text/javascript"></script>
 <!-- <script src="js/histogram.js" type="text/javascript"></script> -->
 <!-- Libs for autocomplete -->
 <link rel="stylesheet" href="css/easy-autocomplete.css"> 
-<script src="js/libs/jquery.easy-autocomplete.js"></script> 
+<script src="libs/jquery.easy-autocomplete.js"></script> 
 
 <style>
     * {
@@ -50,9 +50,9 @@
         <p style="padding-left: 20px">Please enjoy exploring shoe prices. Each data point is a shoe. Please also try typing brand names to discover different patterns. <br> (Note: some images may not be available.)</p>
         <!-- floating search box -->
         <div id="search-box" style="display: none;padding-left: 20px">
-            <span><strong>Search: </strong></span>
-            <input id="search-input" type="text" placeholder="Search for shoe brands, e.g., Ralph Lauren" value="" style="border-color: orange;width:300px">
-            <button id="search-reset">Reset Search</button>
+            <!-- <span><strong>Search: </strong></span> -->
+            <input id="search-input" type="text" placeholder="Search for shoe brands, e.g., Ralph Lauren" value="" style="border-color: orange;width:300px" class="input">
+            <button id="search-reset" class="btn">Reset Search</button>
         </div>
 
         <!-- for vis -->
@@ -65,7 +65,6 @@
 <script>
   ( function() {
       loadBubbleChart("vis");
-      // loadHistograms("vis");
 
   }());
   </script>
