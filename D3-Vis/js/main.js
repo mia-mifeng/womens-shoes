@@ -89,7 +89,6 @@ function buildDataStructure(data){
         searchColor = searchColor.concat(colors);
     });
     searchColor = searchColor.unique();
-    console.log(searchColor);
     searchData = searchBrand.concat(searchColor);
     // searchData = data.map(d => d[NAME_ATTR]).unique();
 
