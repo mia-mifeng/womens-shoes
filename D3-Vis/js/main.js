@@ -82,7 +82,16 @@ function buildDataStructure(data){
       });
     }
 
-    searchData = data.map(d => d[NAME_ATTR]).unique();
+    var searchBrand = data.map(d => ("Brand: " + d[NAME_ATTR])).unique();
+    var searchColor = [];
+    data.forEach(function(d) {
+        var colors = d['colors'].map(c => ("Color: " + c));
+        searchColor = searchColor.concat(colors);
+    });
+    searchColor = searchColor.unique();
+    console.log(searchColor);
+    searchData = searchBrand.concat(searchColor);
+    // searchData = data.map(d => d[NAME_ATTR]).unique();
 
   var root;
   //root = d3.hierarchy({children: [{children: top10}].concat(data)})
@@ -293,20 +302,31 @@ function enableSearch(){
 
         // Unfade selected elements
         var filteredBubbles = d3.selectAll(".bubbles").filter(function(d){
-            // console.log(d.data)
-            return d.data.parent.data[NAME_ATTR] && d.data.parent.data[NAME_ATTR].toLowerCase().includes(value)
-                                                    })
+            var searchAttribute = value.split(": ")[0];
+            var searchValue = value.split(": ")[1];
+            var bubble = d.data.parent.data;
+
+            if(searchAttribute === "brand") {
+                return bubble[NAME_ATTR] && bubble[NAME_ATTR].toLowerCase().includes(searchValue)
+            } else if(searchAttribute === "color") { 
+                return bubble['colors'] && bubble['colors'].toString().toLowerCase().includes(searchValue)
+            }else {
+                return bubble[NAME_ATTR] && bubble[NAME_ATTR].toLowerCase().includes(searchAttribute)
+            }
+        })
+            
+        
 
         if (value && filteredBubbles) {
             // Unfade
-            // console.log(filteredBubbles)
             filteredBubbles.classed("search-selected",true);
             
         }
+    }
 
         
 
-    }
+    //}
 
     // Click button to reset
     $("#search-reset").click(function () {

@@ -148,6 +148,7 @@ Cheap brands's prices range from $1 to $14.
 ### What do these expensive or cheap shoes look like? What about other details about these shoes?
 
 An interactive visualization based on D3 was made to better display and filter shoes details, including images, color choices, etc. The intended purpose of the d3 vis is not to show a discovered trend, but to support (maybe can also encourage) a user to further explore the dataset in a flexible way.
+The visualization can be accessed through this link --  [https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/](https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/)
 
 This is an overview of the interactive visualization. Each pair of shoes in this dataset displays as a "shoe" (made with SVG path).
 The shoes with higher cost are shown bigger.
@@ -170,5 +171,17 @@ This is Ralph Lauren.
  Some brands are indeed cheaper.
  
  ![](../screenshots/mia.png)
- 
- The visualization can be accessed through this link --  [https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/](https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/)
+
+### How about shoe colors?
+
+There are of course many black shoes.
+![](../screenshots/black.png)
+
+Here are some purple shoes.
+![](../screenshots/purple.png)
+
+
+### More features can easily be added through filter-by-search, such as Material(e.g., leather), Type (e.g., sport)...
+
+They're not implemented for now. But will be added in the future.
+The visualization can be accessed through this link --  [https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/](https://users.wpi.edu/~mfeng2/womens-shoes/D3-Vis/)
